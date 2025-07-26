@@ -8,14 +8,7 @@ const app = express();
 const prisma = new PrismaClient();
 
 app.use(
-  cors({
-    origin: [
-      "http://localhost:8080",
-      "http://localhost:5173",
-      "https://project-bact3sn0p-vineet431s-projects.vercel.app", 
-    ],
-    credentials: true,
-  })
+  cors({})
 );
 
 
