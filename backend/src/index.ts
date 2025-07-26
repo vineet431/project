@@ -106,11 +106,11 @@ app.post("/signin", async (req, res) => {
     const passwordMatch = await bcrypt.compare(Password, user.Password);
     if (!passwordMatch) return res.status(401).json({ message: "Invalid password" });
 
-    // Set cookie
+    // ✅ Set cookie with proper cross-origin credentials
     res.cookie("userEmail", user.email, {
       httpOnly: true,
-      secure: false, // true in production with HTTPS
-      sameSite: "lax",
+      secure: true,           // ✅ must be true on Render (HTTPS)
+      sameSite: "None",       // ✅ must be 'None' for cross-origin cookies
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -121,6 +121,7 @@ app.post("/signin", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 // ------------------- Me -------------------
 app.get("/me", async (req, res) => {
