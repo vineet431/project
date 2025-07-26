@@ -32,9 +32,9 @@ const App = () => {
             <Route path="/signup" element={<Signup />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/orders" element={<GroupOrders />} />
-            {/* <Route path="/search" element={<GroupOrders />} /> */}
-            {/* <Route path="/products" element={<GroupOrders />} /> */}
-            {/* <Route path="/profile" element={<Dashboard />} /> */}
+            <Route path="/search" element={<GroupOrders />} />
+            <Route path="/products" element={<GroupOrders />} />
+            <Route path="/profile" element={<Dashboard />} />
             <Route path="/vendor/create-order" element={<CreateOrder />} />
             <Route path="/supplier/:id/products" element={<SupplierProducts />} />
             <Route path="*" element={<NotFound />} />
