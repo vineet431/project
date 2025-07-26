@@ -107,12 +107,13 @@ app.post("/signin", async (req, res) => {
     if (!passwordMatch) return res.status(401).json({ message: "Invalid password" });
 
     // ✅ Set cookie with proper cross-origin credentials
-    res.cookie("userEmail", user.email, {
-      httpOnly: true,
-      secure: true,           // ✅ must be true on Render (HTTPS)
-      sameSite: "None",       // ✅ must be 'None' for cross-origin cookies
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+        res.cookie("userEmail", user.email, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none", // ✅ lowercase
+          maxAge: 24 * 60 * 60 * 1000,
+        });
+
 
     const { Password: _, ...userWithoutPassword } = user;
     return res.status(200).json({ message: "Signed in successfully", user: userWithoutPassword });
