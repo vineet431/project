@@ -7,8 +7,14 @@ import cors from "cors";
 const app = express();
 const prisma = new PrismaClient();
 
+
 app.use(
-  cors({})
+  cors({
+    origin: (origin, callback) => {
+      callback(null, origin || "*"); // echo the origin or fallback to '*'
+    },
+    credentials: true,
+  })
 );
 
 
