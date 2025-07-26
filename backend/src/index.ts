@@ -87,6 +87,9 @@ app.post("/signup", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+app.get("/", (req, res) => {
+  res.send("Server is running fine!");
+});
 
 // ------------------- Signin -------------------
 app.post("/signin", async (req, res) => {
