@@ -8,7 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Layout } from "@/components/Layout";
 import { Store, Truck } from "lucide-react";
 import axios from "axios";
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,9 +25,7 @@ export default function Login() {
         `${BASE_URL}/signin`,
         { email, Password: password },
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           withCredentials: true,
         }
       );
@@ -35,7 +35,9 @@ export default function Login() {
       localStorage.setItem("isLoggedIn", "true");
 
       alert("Login successful!");
-      navigate("/dashboard");
+
+      // ✅ Navigate to user-specific dashboard
+      navigate(`/${userType}/dashboard`);
     } catch (err: any) {
       console.error("Login error:", err);
       const msg = err.response?.data?.message || "Login failed!";
