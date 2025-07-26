@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  email          String    @unique
+  FullName       String
+  BusinessName   String
+  phonenuber     String
+  localtion      String
+  Password       String
+  userType       String
+  createdAt      DateTime  @default(now())
+  id             String    @id @default(uuid())
+  savedThisMonth Float     @default(0)
+  supplierId     String?   @unique
+  supplier       Supplier? @relation(fields: [supplierId], references: [id])
+}
+
+model Supplier {
+  id          String              @id @default(uuid())
+  name        String
+  distance    String
+  rating      Float
+  verified    Boolean             @default(false)
+  specialties String[]
+  createdAt   DateTime            @default(now())
+  groupOrders GroupOrder[]
+  requests    GroupOrderRequest[]
+  products    Product[]
+  user        User?
+}
+
+model GroupOrder {
+  id             String   @id @default(uuid())
+  title          String
+  totalItems     Int
+  currentMembers Int
+  maxMembers     Int
+  deadline       String
+  savings        String
+  supplierId     String
+  createdAt      DateTime @default(now())
+  supplier       Supplier @relation(fields: [supplierId], references: [id])
+}
+
+model Product {
+  id         String   @id @default(uuid())
+  name       String
+  category   String
+  price      Float
+  unit       String
+  stock      Int
+  status     String
+  supplierId String
+  createdAt  DateTime @default(now())
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+}
+
+model GroupOrderRequest {
+  id           String   @id @default(uuid())
+  title        String
+  requester    String
+  items        Int
+  totalValue   Float
+  participants Int
+  status       String
+  deadline     String
+  supplierId   String
+  createdAt    DateTime @default(now())
+  supplier     Supplier @relation(fields: [supplierId], references: [id])
+}
+
+model OrderTracking {
+  id                String      @id @default(uuid())
+  title             String
+  supplier          String
+  status            String
+  orderDate         String
+  estimatedDelivery String
+  totalAmount       Float
+  supplierPhone     String
+  supplierAddress   String
+  createdAt         DateTime    @default(now())
+  items             OrderItem[]
+}
+
+model OrderItem {
+  id              String        @id @default(uuid())
+  name            String
+  quantity        Int
+  unit            String
+  price           Float
+  orderTrackingId String
+  orderTracking   OrderTracking @relation(fields: [orderTrackingId], references: [id])
+}
