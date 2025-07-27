@@ -8,20 +8,12 @@ const app = express();
 const prisma = new PrismaClient();
 
 
-const allowedOrigins = [
-  "https://project-phi-rosy-65.vercel.app", 
-  "http://localhost:5173"                
-];
-
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, origin);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+      "http://localhost:5173", 
+      "https://project-phi-rosy-65.vercel.app", 
+    ],
     credentials: true,
   })
 );
