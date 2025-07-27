@@ -7,20 +7,24 @@ import cors from "cors";
 const app = express();
 const prisma = new PrismaClient();
 
-
+// ✅ CORS for frontend at localhost and Vercel
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", 
-      "https://project-phi-rosy-65.vercel.app", 
+      "http://localhost:5173",
+      "https://project-phi-rosy-65.vercel.app"
     ],
     credentials: true,
   })
 );
 
-
 app.use(cookieParser());
 app.use(express.json());
+
+// ------------------- Test Route -------------------
+app.get("/", (req, res) => {
+  res.send("✅ Server is running!");
+});
 
 // ------------------- Signup -------------------
 app.post("/signup", async (req, res) => {
@@ -43,18 +47,16 @@ app.post("/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(Password, 10);
 
     if (userType === "supplier") {
-      // Create supplier record first
       const supplier = await prisma.supplier.create({
         data: {
           name: BusinessName,
-          distance: "", // Add default or receive from req.body if you want
+          distance: "",
           rating: 0,
           verified: false,
-          specialties: [], // Empty array or receive from req.body
+          specialties: [],
         },
       });
 
-      // Create user linked to supplier
       const result = await prisma.user.create({
         data: {
           email,
@@ -71,7 +73,6 @@ app.post("/signup", async (req, res) => {
       const { Password: _, ...userWithoutPassword } = result;
       return res.status(201).json({ message: "New supplier user created", user: userWithoutPassword });
     } else {
-      // Create normal user without supplier
       const result = await prisma.user.create({
         data: {
           email,
@@ -92,9 +93,6 @@ app.post("/signup", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-app.get("/", (req, res) => {
-  res.send("Server is running fine!");
-});
 
 // ------------------- Signin -------------------
 app.post("/signin", async (req, res) => {
@@ -107,14 +105,12 @@ app.post("/signin", async (req, res) => {
     const passwordMatch = await bcrypt.compare(Password, user.Password);
     if (!passwordMatch) return res.status(401).json({ message: "Invalid password" });
 
-    // ✅ Set cookie with proper cross-origin credentials
-        res.cookie("userEmail", user.email, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none", // ✅ lowercase
-          maxAge: 24 * 60 * 60 * 1000,
-        });
-
+    res.cookie("userEmail", user.email, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     const { Password: _, ...userWithoutPassword } = user;
     return res.status(200).json({ message: "Signed in successfully", user: userWithoutPassword });
@@ -123,7 +119,6 @@ app.post("/signin", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 // ------------------- Me -------------------
 app.get("/me", async (req, res) => {
@@ -210,7 +205,6 @@ app.post("/supplier/add-product", async (req, res) => {
   }
 
   try {
-    // Step 1: Find the user
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { supplier: true },
@@ -220,10 +214,8 @@ app.post("/supplier/add-product", async (req, res) => {
       return res.status(400).json({ message: "User is not a supplier" });
     }
 
-    // Step 2: Extract actual supplierId
     const actualSupplierId = user.supplier.id;
 
-    // Step 3: Create product with that supplierId
     const newProduct = await prisma.product.create({
       data: {
         name,
@@ -242,13 +234,15 @@ app.post("/supplier/add-product", async (req, res) => {
     res.status(500).json({ message: "Failed to add product" });
   }
 });
+
+// ------------------- Get Supplier Products -------------------
 app.get("/supplier/:id/products", async (req, res) => {
   const supplierId = req.params.id;
 
   try {
     const supplier = await prisma.supplier.findUnique({
       where: { id: supplierId },
-      include: { products: true }, // 👈 Fetch products
+      include: { products: true },
     });
 
     if (!supplier) {
@@ -261,12 +255,12 @@ app.get("/supplier/:id/products", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// ------------------- Group Orders -------------------
 app.get("/group-orders", async (req, res) => {
   try {
     const groupOrders = await prisma.groupOrderRequest.findMany({
-      include: {
-        supplier: true, // if you want supplier details
-      },
+      include: { supplier: true },
       orderBy: { createdAt: "desc" },
     });
 
@@ -276,6 +270,7 @@ app.get("/group-orders", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch group orders" });
   }
 });
+
 app.get("/group-orders/active", async (req, res) => {
   try {
     const groupOrders = await prisma.groupOrder.findMany({
@@ -286,12 +281,9 @@ app.get("/group-orders/active", async (req, res) => {
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
-    // Format response to match your frontend expectation
     const formattedOrders = groupOrders.map((order) => ({
       id: order.id,
       title: order.title,
@@ -309,6 +301,7 @@ app.get("/group-orders/active", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch active group orders" });
   }
 });
+
 app.post("/group-orders", async (req, res) => {
   try {
     const { title, totalItems, maxMembers, deadline, savings, supplierId } = req.body;
@@ -317,14 +310,12 @@ app.post("/group-orders", async (req, res) => {
       data: {
         title,
         totalItems: Number(totalItems),
-        currentMembers: 0, // you must include this
+        currentMembers: 0,
         maxMembers: Number(maxMembers),
-        deadline: deadline.toString(), // ensure it's string, e.g. "2025-07-26"
-        savings: savings.toString(),   // convert savings to string explicitly
-        supplier: {
-          connect: { id: supplierId }
-        }
-      }
+        deadline: deadline.toString(),
+        savings: savings.toString(),
+        supplier: { connect: { id: supplierId } },
+      },
     });
 
     res.status(201).json(newGroupOrder);
@@ -334,22 +325,40 @@ app.post("/group-orders", async (req, res) => {
   }
 });
 
+app.post("/group-orders/:id/join", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-// GET /order-tracking/:id
+    const order = await prisma.groupOrder.findUnique({ where: { id } });
+
+    if (!order) return res.status(404).json({ error: "Group order not found" });
+
+    if (order.currentMembers >= order.maxMembers)
+      return res.status(400).json({ error: "Group is already full" });
+
+    const updatedOrder = await prisma.groupOrder.update({
+      where: { id },
+      data: { currentMembers: { increment: 1 } },
+    });
+
+    res.json(updatedOrder);
+  } catch (err) {
+    console.error("Failed to join group order:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ------------------- Order Tracking -------------------
 app.get("/order-tracking/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
     const order = await prisma.orderTracking.findUnique({
       where: { id },
-      include: {
-        items: true,
-      },
+      include: { items: true },
     });
 
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
+    if (!order) return res.status(404).json({ message: "Order not found" });
 
     res.json({
       id: order.id,
@@ -374,6 +383,7 @@ app.get("/order-tracking/:id", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 app.get("/suppliers", async (req, res) => {
   try {
     const suppliers = await prisma.supplier.findMany();
@@ -383,38 +393,6 @@ app.get("/suppliers", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch suppliers" });
   }
 });
-app.post("/group-orders/:id/join", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const order = await prisma.groupOrder.findUnique({
-      where: { id },
-    });
-
-    if (!order) {
-      return res.status(404).json({ error: "Group order not found" });
-    }
-
-    if (order.currentMembers >= order.maxMembers) {
-      return res.status(400).json({ error: "Group is already full" });
-    }
-
-    const updatedOrder = await prisma.groupOrder.update({
-      where: { id },
-      data: {
-        currentMembers: {
-          increment: 1,
-        },
-      },
-    });
-
-    res.json(updatedOrder);
-  } catch (err) {
-    console.error("Failed to join group order:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
 
 // ------------------- Start Server -------------------
 app.listen(3000, () => {
