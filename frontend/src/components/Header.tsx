@@ -23,12 +23,12 @@ export const Header = ({ title, showNotifications = true, onMenuClick }: HeaderP
           </div>
         </div>
         
-        {showNotifications && (
+        {/* {showNotifications && (
           <Button variant="ghost" size="sm" className="relative">
             <Bell size={20} />
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full"></span>
           </Button>
-        )}
+        )} */}
       </div>
     </header>
   );
